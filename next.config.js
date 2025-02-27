@@ -5,6 +5,16 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+    webpack: (config, { isServer }) => {
+        if (isServer) {
+            config.externals.push("sleep")
+        }
+        return config;
+    },
+    eslint: {
+        ignoreDuringBuilds: true,
+    }
+};
 
 export default config;

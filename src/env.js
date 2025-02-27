@@ -1,4 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
+import { strict } from "assert";
 import { z } from "zod";
 
 export const env = createEnv({
@@ -7,6 +8,7 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    SHOT_PATH : z.string(),
     AUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string()
@@ -33,6 +35,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    SHOT_PATH: process.env.SHOT_PATH,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
