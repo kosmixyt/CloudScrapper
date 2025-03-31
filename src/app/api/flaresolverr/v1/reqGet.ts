@@ -25,6 +25,7 @@ export default async function RequestMiddleware(
       const timeout = pl.maxTimeout ?? 60_000;
       const proxy = session.length === "" ? ParseProxyUrl(pl.proxy) : undefined;
       const Reqcookies = ValidateCookies(pl.cookies) ? pl.cookies : [];
+      console.log("Request cookies:", Reqcookies); // Log des cookies
       const opt = GetDefaultBrowserOptions();
       if (proxy) {
         opt.proxy = {
@@ -136,6 +137,7 @@ export default async function RequestMiddleware(
           resolve(res);
         })
         .catch((e) => {
+          console.error("Error during request processing:", e); // Log de l'erreur
           if (!resolved) rejects(e);
         });
     } catch (e: unknown) {}

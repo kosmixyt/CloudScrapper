@@ -14,7 +14,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body className="min-h-screen w-screen bg-slate-900">{children}</body>
+      <body className="min-h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="pointer-events-none fixed inset-0 h-full w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800/20 to-transparent opacity-50"></div>
+        {children}
+      </body>
     </html>
   );
 }
