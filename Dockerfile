@@ -1,22 +1,24 @@
 # Use the official Node.js image as the base image
 FROM oven/bun:1
 
-
-
 RUN apt update && apt install -y curl
 RUN apt-get install xvfb -y
+
 # Set the working directory
 WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-COPY . .
+# Copy the .env file temporarily
+COPY .env .env
 
-RUN bun install
-RUN bun install -g prisma
-RUN prisma db push --accept-data-loss --force-reset
+# Install dependencies and configure the environment
+COPY . .
+RUN bun install && bun install -g prisma && prisma db push --accept-data-loss --force-reset
+
+# Remove the .env file after use
+
 # install chrome
 RUN apt install gnupg -y
 RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add
@@ -29,5 +31,8 @@ RUN apt install ffmpeg -y
 EXPOSE 3000
 
 RUN bun run build
+
+RUN rm .env
+
 # Start the application
 CMD ["bun", "run", "start"]

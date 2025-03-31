@@ -5,10 +5,10 @@ import * as path from "path";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: { id: string } },
 ): Promise<Response> {
   try {
-    const id = params.id;
+    const id = context.params.id;
     const filePath = path.join(env.SHOT_PATH, `${id}.png`);
 
     // Check if file exists
