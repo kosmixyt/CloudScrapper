@@ -43,6 +43,7 @@ export const authConfig = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+
   adapter: PrismaAdapter(db),
   callbacks: {
     session: ({ session, user }) => ({

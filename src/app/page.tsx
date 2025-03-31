@@ -13,13 +13,27 @@ export default async function HomePage() {
   const userData = await db.user.findFirst({
     where: { id: session.user.id },
     include: {
-      AllowedOrigins: true,
+      AllowedOrigins: {},
       ChromeSessions: true,
       sessions: true,
+      Request: true,
     },
   });
   if (!userData) {
     throw new Error("User not found");
   }
-  return <RenderHome session={session} />;
+
+  // Fetch data server-side
+  // const origins = await db.allowedOrigin.findMany();
+  // const requests = await db.request.findMany();
+  // const sessions = await db.chromeSession.findMany();
+
+  return (
+    <RenderHome
+      session={session}
+      initialOrigins={userData.AllowedOrigins}
+      initialRequests={userData.Request}
+      initialSessions={userData.ChromeSessions}
+    />
+  );
 }

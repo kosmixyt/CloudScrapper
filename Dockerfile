@@ -16,7 +16,7 @@ COPY . .
 
 RUN bun install
 RUN bun install -g prisma
-RUN prisma generate
+RUN prisma db push --accept-data-loss --force-reset
 # install chrome
 RUN apt install gnupg -y
 RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add

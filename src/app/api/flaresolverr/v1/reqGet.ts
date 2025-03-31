@@ -19,6 +19,7 @@ export default async function RequestMiddleware(
     var resolved = false;
     try {
       const url = pl.url;
+      const parsedBaseUrl = new URL(url);
       const session = pl.session ?? "";
       const onlyCookie = pl.returnOnlyCookie ?? false;
       const ttl = pl.session_ttl_minutes ?? 0;
@@ -39,8 +40,6 @@ export default async function RequestMiddleware(
         session.length === 0 ? await connect(opt) : await GetBrowser(session);
       if (!results) throw new Error("Session not found");
       const foFunc = async (): Promise<GetRequestResponse> => {
-        // const results = await connect(opt);
-
         await results.browser.setCookie(...Reqcookies);
         const page = await results.browser.newPage();
         page.setDefaultNavigationTimeout(timeout);
@@ -54,23 +53,30 @@ export default async function RequestMiddleware(
         const [content, headers]: [string, Record<string, string>] =
           await new Promise((rs) => {
             const on_response = async (response: any) => {
-              const requrl = await response.url();
               const ressourceType = response.request().resourceType();
-              const isRedirect =
-                response.status() >= 300 && response.status() <= 399;
-              if (ressourceType === "document" && (await haveCfCloudlare())) {
-                var content: string = await response.text();
-                if (!content.includes("Just a moment...")) {
-                  rs([content, response.headers()]);
+              const url = response.url();
+              if (ressourceType === "document") {
+                const status = response.status();
+                console.log("Response status:", status, response.url());
+                if (status == 200) {
+                  const content = await response.text();
+                  const headers = response.headers();
+                  const parsedUrl = new URL(url);
+
+                  if (
+                    !parsedUrl.hostname.endsWith(
+                      parsedBaseUrl.hostname.split(".").slice(-2).join("."),
+                    )
+                  ) {
+                    console.log("Redirection to", parsedUrl.hostname);
+                  } else {
+                    rs([content, headers]);
+                  }
                 } else {
-                  // console.log("Cloudflare detected");
+                  // follow redirection
+                  const url = response.url();
+                  console.log("Redirection to", url);
                 }
-                page.off("response", on_response);
-              } else {
-                // console.log(
-                //   requrl,
-                //   `not document (${ressourceType}) (${isRedirect})`,
-                // );
               }
             };
             page.on("response", on_response);
@@ -98,6 +104,7 @@ export default async function RequestMiddleware(
             method: "GET",
             url,
             allowedOriginId: origin.id,
+            userId: origin.userId,
           },
         });
         await page.screenshot({
@@ -110,6 +117,7 @@ export default async function RequestMiddleware(
         return {
           solution: {
             url,
+
             status: 200,
             headers: headers,
             response: onlyCookie ? "" : content,
@@ -119,6 +127,7 @@ export default async function RequestMiddleware(
           status: "ok",
           message: "Success",
           startTimestamp: Date.now(),
+          requestId: request.id,
           endTimestamp: Date.now(),
           version: "1.0.0",
         };
@@ -166,6 +175,7 @@ export interface GetRequestResponse {
   status: "ok" | "error";
   message: string;
   startTimestamp: number;
+  requestId: string;
   endTimestamp: number;
   version: string;
 }

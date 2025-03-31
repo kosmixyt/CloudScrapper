@@ -33,6 +33,7 @@ model User {
     ChromeSessions ChromeSession[]
     AllowedOrigins AllowedOrigin[]
     accounts       Account[]
+    Request        Request[]
 }
 
 model VerificationToken {
@@ -80,9 +81,11 @@ model AllowedOrigin {
 }
 
 model Request {
-    id              String        @id @default(cuid())
+    id              String         @id @default(cuid())
     url             String
     method          String
-    AllowedOrigin   AllowedOrigin @relation(fields: [allowedOriginId], references: [id])
-    allowedOriginId String
+    AllowedOrigin   AllowedOrigin? @relation(fields: [allowedOriginId], references: [id])
+    allowedOriginId String?
+    User            User           @relation(fields: [userId], references: [id])
+    userId          String
 }
