@@ -14,41 +14,67 @@ export const authOptions: NextAuthConfig = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      authorization: {
+        params: { scope: "identify email" },
+      },
     }),
   ],
+  // Trust host headers from Coolify
+  trustHost: true,
+  // Add base URL for callback handling
+  basePath: "/api/auth",
+  // Important for deployed environments
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    // session({ token, session }) {
-    //   if (token) {
-    //     session.user.id = token.id as string;
-    //     session.user.name = token.name;
-    //     session.user.email = token.email;
-    //     session.user.image = token.picture;
-    //   }
-    //   return session;
-    // },
-    // async jwt({ token, user }) {
-    //   const dbUser = await db.user.findFirst({
-    //     where: {
-    //       email: token.email,
-    //     },
-    //   });
+    session({ token, session }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.name = token.name;
+        session.user.email = token.email as string;
+        session.user.image = token.picture;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      const dbUser = await db.user.findFirst({
+        where: {
+          email: token.email,
+        },
+      });
 
-    //   if (!dbUser) {
-    //     if (user) {
-    //       token.id = user.id;
-    //     }
-    //     return token;
-    //   }
+      if (!dbUser) {
+        if (user) {
+          token.id = user.id;
+        }
+        return token;
+      }
 
-    //   return {
-    //     id: dbUser.id,
-    //     name: dbUser.name,
-    //     email: dbUser.email,
-    //     picture: dbUser.image,
-    //   };
-    // },
+      return {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        picture: dbUser.image,
+      };
+    },
+  },
+  events: {
+    signOut: async () => {
+      // Handle sign out event
+      console.log("User signed out");
+      // Clean up any server-side session data if needed
+    },
   },
 };
