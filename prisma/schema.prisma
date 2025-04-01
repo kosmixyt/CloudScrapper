@@ -53,10 +53,10 @@ model Account {
     refresh_token     String? @db.Text
     access_token      String? @db.Text
     expires_at        Int?
-    token_type        String?
-    scope             String?
+    token_type        String? @db.Text
+    scope             String? @db.Text
     id_token          String? @db.Text
-    session_state     String?
+    session_state     String? @db.Text
     user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])

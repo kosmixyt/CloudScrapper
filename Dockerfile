@@ -3,6 +3,7 @@ FROM oven/bun:1
 
 RUN apt update && apt install -y curl
 RUN apt-get install xvfb -y
+ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 
 
 # Set the working directory
 WORKDIR /app
@@ -15,7 +16,7 @@ COPY .env .env
 
 # Install dependencies and configure the environment
 COPY . .
-RUN bun install && bun install -g prisma && prisma db push --accept-data-loss --force-reset
+RUN bun install && bun install -g prisma && prisma db push --accept-data-loss --force-reset && prisma generate
 
 # Remove the .env file after use
 
@@ -30,9 +31,7 @@ RUN apt install ffmpeg -y
 # Expose the port the app runs on
 EXPOSE 3000
 
-RUN bun run build
-
 RUN rm .env
 
-# Start the application
+
 CMD ["bun", "run", "start"]

@@ -1,6 +1,7 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 
 import { db } from "~/server/db";
 
@@ -32,7 +33,20 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
+    DiscordProvider({
+      clientId: process.env.DISCORD_CLIENT_ID as string,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET as string,
+      // Add explicit authorization configuration
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          scope: "openid email profile",
+        },
+      },
+    }),
     /**
      * ...add more providers here.
      *
@@ -44,14 +58,28 @@ export const authConfig = {
      */
   ],
 
+  secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(db),
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    redirect: async ({ url, baseUrl }) => {
+      console.log("Redirect callback triggered:", { url, baseUrl });
+      // Ensure we always redirect back to the site
+      if (url.startsWith(baseUrl)) return url;
+      else return baseUrl;
+    },
+    session: ({ session, user }) => {
+      console.log("Session callback triggered:", { session, user }); // Debugging log
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
   },
+  debug: true, // Enable debug mode for detailed logs
+
+  // Add session security configurations
+  useSecureCookies: process.env.NODE_ENV === "production",
 } satisfies NextAuthConfig;
