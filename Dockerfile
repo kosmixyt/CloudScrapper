@@ -13,6 +13,7 @@ COPY package*.json ./
 
 # Copy the .env file temporarily
 COPY .env .env
+COPY .next/ /app/.next
 
 # Install dependencies and configure the environment
 COPY . .
@@ -35,3 +36,5 @@ RUN rm .env
 
 
 CMD ["bun", "run", "start"]
+
+# C:/Users/flocl/CloudScrapper/.env
